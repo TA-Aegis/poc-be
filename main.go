@@ -43,6 +43,10 @@ var (
 
 func main() {
 	app := fiber.New()
+
+	// Serve static files
+	app.Static("/", "./public")
+
 	app.Get("/events", adaptor.HTTPHandler(handler(queueHandler)))
 	app.Listen(":8080")
 }
