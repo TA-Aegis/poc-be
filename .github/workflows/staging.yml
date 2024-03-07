@@ -13,7 +13,6 @@ env:
   IMAGE_NAME: reyshazni/${{ github.event.repository.name }}
   CONTAINER_NAME: ${{ github.event.repository.name }}
   PORT: 8080
-  # Note: You cannot directly store secrets in the global 'env' due to GitHub Actions' security model.
 
 jobs:
   dockerize-and-push:
@@ -38,15 +37,15 @@ jobs:
   deploy-to-server:
     runs-on: ubuntu-latest
     needs: dockerize-and-push
-    environment: staging # Optionally, specify an environment to use environment-specific secrets.
+    environment: staging
     steps:
       - name: Deploy to VM via SSH action
-        uses: appleboy/ssh-action@v0.1.4
+        uses: appleboy/ssh-action@v1.0.1
         with:
-          host: ${{ env.IP_STAGING }}
-          username: root
-          key: ${{ env.BOT_PRIV_KEY }}
-          port: 22
+          HOST: ${{ env.IP_STAGING }}
+          USERNAME: root
+          PORT: 22
+          KEY: ${{ env.BOT_PRIV_KEY }}
           script: |
             # Pull image
             docker pull ${{ env.IMAGE_NAME }}
