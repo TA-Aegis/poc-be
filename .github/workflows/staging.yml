@@ -12,6 +12,8 @@ on:
 env:
   IMAGE_NAME: reyshazni/${{ github.event.repository.name }}
   CONTAINER_NAME: ${{ github.event.repository.name }}
+  IP_STAGING: ${{ vars.IP_STAGING }}
+  BOT_PRIV_KEY: ${{ vars.BOT_PRIV_KEY }}
   PORT: 8080
 
 jobs:
