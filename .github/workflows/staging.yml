@@ -10,9 +10,10 @@ on:
     types: [closed]
 
 env:
-  IMAGE_NAME: reyshazni/${{github.event.repository.name}}
-  CONTAINER_NAME: ${{github.event.repository.name}}
+  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}
+  CONTAINER_NAME: ${{ github.event.repository.name }}
   PORT: 8080
+  # Note: You cannot directly store secrets in the global 'env' due to GitHub Actions' security model.
 
 jobs:
   dockerize-and-push:
@@ -29,32 +30,31 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build the Docker image
-        run: docker build --platform linux/amd64 -t $(echo ${{ IMAGE_NAME }}) .
+        run: docker build --platform linux/amd64 -t ${{ env.IMAGE_NAME }} .
 
       - name: Push the Docker image
-        run: docker push $(echo $IMAGE_NAME)
+        run: docker push ${{ env.IMAGE_NAME }}
 
   deploy-to-server:
     runs-on: ubuntu-latest
     needs: dockerize-and-push
-
+    environment: staging # Optionally, specify an environment to use environment-specific secrets.
     steps:
       - name: Deploy to VM via SSH action
         uses: appleboy/ssh-action@v0.1.4
         with:
-          host: ${{ IP_STAGING }}
+          host: ${{ env.IP_STAGING }}
           username: root
-          key: ${{ BOT_PRIV_KEY }}
+          key: ${{ env.BOT_PRIV_KEY }}
           port: 22
           script: |
             # Pull image
-            docker pull ${{ IMAGE_NAME }}
+            docker pull ${{ env.IMAGE_NAME }}
             # Stop running container
-            docker stop ${{ CONTAINER_NAME }}
+            docker stop ${{ env.CONTAINER_NAME }}
             # Remove old container
-            docker rm ${{ CONTAINER_NAME }}
-            # Remove dangling image
-            docker image prune -a
-            yes | head -1
+            docker rm ${{ env.CONTAINER_NAME }}
+            # Remove dangling images, force removal without prompt
+            docker image prune -af
             # Run image and open port
-            docker run -d -p ${{ PORT }}:${{ PORT }} --name ${{ CONTAINER_NAME }} ${{ IMAGE_NAME }}
+            docker run -d -p ${{ env.PORT }}:${{ env.PORT }} --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}
