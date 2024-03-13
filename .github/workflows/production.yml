@@ -3,16 +3,16 @@ name: Staging CI/CD
 on:
   push:
     branches:
-      - staging
+      - master
   pull_request:
     branches:
-      - staging
+      - master
     types: [closed]
 
 env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
-  BRANCH: staging
+  BRANCH: production
   IMAGE_NAME: reyshazni/${{ github.event.repository.name }}:${{ env.BRANCH }}
 
 jobs:
