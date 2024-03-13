@@ -11,8 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/joho/godotenv"
-
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
@@ -49,13 +47,9 @@ var (
 var ctx = context.Background()
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-		return
-	}
 	redisURL := os.Getenv("REDIS_URL")
 	fmt.Println(redisURL)
+
 	if redisURL == "" {
 		fmt.Println("REDIS_URL environment variable is not set")
 		return
