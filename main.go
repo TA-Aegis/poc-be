@@ -2,15 +2,20 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
+	"github.com/joho/godotenv"
+
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
 )
 
 type Client struct {
@@ -41,7 +46,29 @@ var (
 	mutex           sync.Mutex
 )
 
+var ctx = context.Background()
+
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+		return
+	}
+	redisURL := os.Getenv("REDIS_URL")
+	fmt.Println(redisURL)
+	if redisURL == "" {
+		fmt.Println("REDIS_URL environment variable is not set")
+		return
+	}
+
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {
+		fmt.Println("Error parsing REDIS_URL:", err)
+		return
+	}
+	client := redis.NewClient(opt)
+	val := client.Get(ctx, "foo").Val()
+	fmt.Println(val)
 	app := fiber.New()
 
 	// Serve static files
