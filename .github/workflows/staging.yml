@@ -47,7 +47,6 @@ jobs:
           sed -i "s|<IMAGE_NAME>|${{ env.IMAGE_NAME }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<VERSION>|$(git rev-parse --short HEAD)|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
-          cat k8s/${{ env.BRANCH }}.yml
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -57,4 +56,5 @@ jobs:
       - name: Apply changes
         run: |
           doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ vars.DO_CLUSTER_NAME }}
+          cat k8s/${{ env.BRANCH }}.yml
           kubectl apply -f k8s/${{ env.BRANCH }}.yml
