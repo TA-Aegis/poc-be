@@ -63,7 +63,7 @@ jobs:
       - name: Create secret
         run: |
           echo "${{ env.ENV }}" > .env
-          kubectl create secret generic ${{ vars.PROJECT_NAME }}.env -n ${{ vars.BRANCH } --from-env-file=.env
+          kubectl create secret generic ${{ vars.PROJECT_NAME }}.env -n ${{ vars.BRANCH }} --from-env-file=.env
 
       - name: Apply changes
         run: |
