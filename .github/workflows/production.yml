@@ -13,7 +13,7 @@ env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
   BRANCH: production
-  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}:${{ env.BRANCH }}
+  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}:production
 
 jobs:
   dockerize-and-push:

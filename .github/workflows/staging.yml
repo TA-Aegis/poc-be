@@ -13,7 +13,7 @@ env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
   BRANCH: staging
-  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}:${{ env.BRANCH }}
+  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}:staging
 
 jobs:
   dockerize-and-push:
