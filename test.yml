@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: proof-of-concept
+ namespace: staging
+ labels:
+   app: proof-of-concept #create deployment with label name
+   commit-hash: "d96af76"
+spec:
+ replicas: 1
+ selector:
+   matchLabels:
+     app: proof-of-concept-pods #target pods with this label
+ template:
+   metadata:
+     labels:
+       app: proof-of-concept-pods #create pods with label name
+   spec:
+     containers:
+       - name: proof-of-concept-cont
+         image: reyshazni/proof-of-concept:staging
+         imagePullPolicy: Always
+         ports:
+           - containerPort: 8080
+        #  envFrom:
+        #    - secretRef:
+        #       name: proof-of-concept.env
+         resources:
+          limits:
+            memory: 150Mi          
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proof-of-concept
+  namespace: staging
+  labels:
+   app: proof-of-concept #create services with label name
+   commit-hash: "d96af76"
+spec:
+  selector:
+    app: proof-of-concept-pods #targeting service name
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

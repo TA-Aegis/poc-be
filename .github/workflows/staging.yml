@@ -48,3 +48,13 @@ jobs:
           sed -i "s|<VERSION>|$(git rev-parse --short HEAD)|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
+
+      - name: Set up kubectl
+        uses: matootie/dokube@v1.4.1
+        with:
+          personalAccessToken: ${{ env.DO_PAK }}
+          clusterName: k8s-antrein
+
+      # Run any kubectl commands you want!
+      - name: Get nodes
+        run: kubectl get nodes
