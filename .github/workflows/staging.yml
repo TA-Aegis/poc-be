@@ -59,6 +59,6 @@ jobs:
       - name: Apply changes
         run: |
           doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ vars.DO_CLUSTER_NAME }}
-          echo -n ${{ vars.ENV }} > .env
+          echo "${{ vars.ENV }}" > .env
           kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ env.BRANCH }} --from-env=.env --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f k8s/${{ env.BRANCH }}.yml
