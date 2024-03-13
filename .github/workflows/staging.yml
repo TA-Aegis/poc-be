@@ -54,7 +54,7 @@ jobs:
         with:
           personalAccessToken: ${{ env.DO_PAK }}
           clusterName: k8s-antrein
+          version: "1.29.1"
 
-      # Run any kubectl commands you want!
       - name: Get nodes
         run: kubectl get nodes
