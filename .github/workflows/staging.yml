@@ -10,16 +10,14 @@ on:
     types: [closed]
 
 env:
-  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}
-  CONTAINER_NAME: ${{ github.event.repository.name }}
-  IP_STAGING: ${{ vars.IP_STAGING }}
-  BOT_PRIV_KEY: ${{ vars.BOT_PRIV_KEY }}
+  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}:${GITHUB_REF##*/}
+  PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
+  BRANCH: ${GITHUB_REF##*/}
 
 jobs:
   dockerize-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -41,21 +39,12 @@ jobs:
     needs: dockerize-and-push
     environment: staging
     steps:
-      - name: Deploy to VM via SSH action
-        uses: appleboy/ssh-action@v1.0.1
-        with:
-          HOST: ${{ env.IP_STAGING }}
-          USERNAME: root
-          PORT: 22
-          KEY: ${{ env.BOT_PRIV_KEY }}
-          script: |
-            # Pull image
-            docker pull ${{ env.IMAGE_NAME }}
-            # Stop running container
-            docker stop ${{ env.CONTAINER_NAME }}
-            # Remove old container
-            docker rm ${{ env.CONTAINER_NAME }}
-            # Remove dangling images, force removal without prompt
-            docker image prune -af
-            # Run image and open port
-            docker run -d -p ${{ env.PORT }}:${{ env.PORT }} --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Prepare deployment file
+        run: |
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" ${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|${{ env.IMAGE_NAME }}|g" ${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|$(git rev-parse --short HEAD)|g" ${{ env.BRANCH }}.yml
+          cat ${{ env.BRANCH }}.yml
