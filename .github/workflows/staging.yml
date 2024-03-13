@@ -14,7 +14,7 @@ env:
   PORT: 8080
   BRANCH: staging
   VERSION: ${{ github.sha }}
-  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}/staging:${{ github.sha }}
+  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}-staging:${{ github.sha }}
 
 jobs:
   dockerize-and-push:

@@ -14,7 +14,7 @@ env:
   PORT: 8080
   BRANCH: production
   VERSION: ${{ github.sha }}
-  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}/production:${{ github.sha }}
+  IMAGE_NAME: reyshazni/${{ github.event.repository.name }}-production:${{ github.sha }}
 
 jobs:
   dockerize-and-push:
