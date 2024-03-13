@@ -52,9 +52,9 @@ jobs:
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
-          token: ${{ env.DO_PAK }}
+          token: ${{ vars.DO_PAK }}
 
       - name: Get nodes
         run: |
-          doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ env.DO_CLUSTER_NAME }}
+          doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ vars.DO_CLUSTER_NAME }}
           kubectl get nodes
