@@ -56,8 +56,16 @@ jobs:
         with:
           token: ${{ vars.DO_PAK }}
 
-      - name: Apply changes
+      - name: Connect to cluster
         run: |
           doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ vars.DO_CLUSTER_NAME }}
-          echo "${{ vars.ENV }}" | kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ env.BRANCH }} --from-env-file=/dev/stdin
+
+      - name: Create secret
+        run: |
+          while IFS= read -r line; do
+            kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ env.BRANCH }} --from-literal="$line"
+          done <<< "${{ vars.ENV }}"  
+
+      - name: Apply changes
+        run: |
           kubectl apply -f k8s/${{ env.BRANCH }}.yml
