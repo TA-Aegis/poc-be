@@ -49,12 +49,12 @@ jobs:
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
 
-      - name: Set up kubectl
-        uses: matootie/dokube@v1.4.1
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
         with:
-          personalAccessToken: ${{ env.DO_PAK }}
-          clusterName: k8s-antrein
-          version: "1.29.1"
+          token: ${{ env.DO_PAK }}
 
       - name: Get nodes
-        run: kubectl get nodes
+        run: |
+        doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ env.DO_CLUSTER_NAME }}
+        kubectl get nodes
