@@ -62,9 +62,7 @@ jobs:
 
       - name: Create secret
         run: |
-          while IFS= read -r line; do
-            kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ env.BRANCH }} --from-literal="$line"
-          done <<< "${{ vars.ENV }}"  
+          echo "${{ env.ENV }}" > .env
 
       - name: Apply changes
         run: |
