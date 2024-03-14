@@ -21,6 +21,7 @@ func main() {
 	// Serve static files and setup handlers
 	fs := http.FileServer(http.Dir("./static"))
 	http.HandleFunc("/queue", handlerDeps.QueueHandler)
+	http.HandleFunc("/reset", handlerDeps.ResetQueueHandler)
 	http.HandleFunc("/random", handlers.RandomHandler)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {

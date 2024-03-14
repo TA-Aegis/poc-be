@@ -60,10 +60,12 @@ func processQueue(ctx context.Context, redisClient *redis.Client, client *models
 		msg = "Your turn has arrived."
 		waitTime = 30 * time.Second * time.Duration(0)
 		client.Events <- &models.QueueEvents{
-			UserID:        client.ID,
-			QueueNumber:   idx + 1,
-			EstimatedTime: math.Floor(waitTime.Seconds()),
-			Message:       msg,
+			UserID:            client.ID,
+			QueueNumber:       idx + 1,
+			EstimatedTime:     math.Floor(waitTime.Seconds()),
+			Message:           msg,
+			PercetageProgress: float64(idx+1) / float64(len(queue)) * 100,
+			IsFinished:        true,
 		}
 
 		queue = append(queue[:idx], queue[idx+1:]...)
@@ -74,12 +76,17 @@ func processQueue(ctx context.Context, redisClient *redis.Client, client *models
 		}
 		return err
 	} else {
-		waitTime = 30*time.Second*time.Duration(idx+1) - elapsed
+		prev := queue[idx-1]
+		elapsed = time.Since(prev.RegisterAt)
+		waitTimeBefore := 30*time.Second*time.Duration(idx) - elapsed
+		waitTime = waitTimeBefore + 30
 		client.Events <- &models.QueueEvents{
-			UserID:        client.ID,
-			QueueNumber:   idx + 1,
-			EstimatedTime: math.Floor(waitTime.Seconds()),
-			Message:       "",
+			UserID:            client.ID,
+			QueueNumber:       idx + 1,
+			EstimatedTime:     math.Floor(waitTime.Seconds()),
+			Message:           "",
+			PercetageProgress: float64(idx+1) / float64(len(queue)) * 100,
+			IsFinished:        false,
 		}
 		return nil
 	}
@@ -140,4 +147,16 @@ func (hd *HandlerDependencies) QueueHandler(w http.ResponseWriter, r *http.Reque
 		}
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func (hd *HandlerDependencies) ResetQueueHandler(w http.ResponseWriter, r *http.Request) {
+	err := hd.RedisClient.FlushAll(r.Context()).Err()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to reset the queue: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Success reset the queue"))
 }
