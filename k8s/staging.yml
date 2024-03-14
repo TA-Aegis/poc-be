@@ -24,10 +24,7 @@ spec:
            - containerPort: <PORT>
          envFrom:
            - secretRef:
-              name: <PROJECT_NAME>.env
-         resources:
-          limits:
-            memory: 150Mi          
+              name: <PROJECT_NAME>.env       
 
 ---
 apiVersion: v1
