@@ -1,4 +1,4 @@
-name: Staging CI/CD
+name: Production CI/CD
 
 on:
   push:
@@ -37,6 +37,7 @@ jobs:
 
   deploy-to-server:
     runs-on: ubuntu-latest
+    environment: production
     needs: dockerize-and-push
     steps:
       - name: Checkout the repo
@@ -55,7 +56,16 @@ jobs:
         with:
           token: ${{ vars.DO_PAK }}
 
-      - name: Apply changes
+      - name: Connect to cluster
         run: |
           doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ vars.DO_CLUSTER_NAME }}
+
+      - name: Create secret
+        run: |
+          echo "${{ vars.ENV }}" > ./.env
+          cat ./.env
+          kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ env.BRANCH }} --from-env-file=./.env -o yaml --dry-run=client | kubectl apply -f -
+          
+      - name: Apply changes
+        run: |
           kubectl apply -f k8s/${{ env.BRANCH }}.yml
