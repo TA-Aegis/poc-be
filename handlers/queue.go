@@ -64,7 +64,7 @@ func processQueue(ctx context.Context, redisClient *redis.Client, client *models
 			QueueNumber:       idx + 1,
 			EstimatedTime:     math.Floor(waitTime.Seconds()),
 			Message:           msg,
-			PercetageProgress: float64(idx+1) / float64(len(queue)) * 100,
+			PercetageProgress: (float64(idx+1) / float64(len(queue))) * 100,
 			IsFinished:        true,
 		}
 
@@ -85,7 +85,7 @@ func processQueue(ctx context.Context, redisClient *redis.Client, client *models
 			QueueNumber:       idx + 1,
 			EstimatedTime:     math.Floor(waitTime.Seconds()),
 			Message:           "",
-			PercetageProgress: float64(idx+1) / float64(len(queue)) * 100,
+			PercetageProgress: (float64(idx+1) / float64(len(queue))) * 100,
 			IsFinished:        false,
 		}
 		return nil
