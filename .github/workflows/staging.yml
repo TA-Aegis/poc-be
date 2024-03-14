@@ -37,7 +37,7 @@ jobs:
 
   deploy-to-server:
     runs-on: ubuntu-latest
-    environment: ${{ env.BRANCH }}
+    environment: staging
     needs: dockerize-and-push
     steps:
       - name: Checkout the repo
