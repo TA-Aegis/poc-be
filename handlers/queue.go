@@ -22,6 +22,7 @@ func getQueue(ctx context.Context, redisClient *redis.Client) ([]*models.Client,
 	if err == redis.Nil {
 		return []*models.Client{}, nil
 	} else if err != nil {
+		fmt.Println("Error getting queue from redis", err.Error())
 		return nil, err
 	}
 	var queue []*models.Client
@@ -91,7 +92,6 @@ func (hd *HandlerDependencies) QueueHandler(w http.ResponseWriter, r *http.Reque
 
 	queue, err := getQueue(ctx, rc)
 	if err != nil {
-		fmt.Println(err.Error())
 		http.Error(w, "Failed to deserialize queue", http.StatusInternalServerError)
 		return
 	}
@@ -102,7 +102,7 @@ func (hd *HandlerDependencies) QueueHandler(w http.ResponseWriter, r *http.Reque
 
 	err = updateQueue(ctx, rc, queue)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println("Error updating queue from redis", err.Error())
 		http.Error(w, "Failed to store updated queue in Redis", http.StatusInternalServerError)
 		return
 	}
@@ -118,14 +118,13 @@ func (hd *HandlerDependencies) QueueHandler(w http.ResponseWriter, r *http.Reque
 	for {
 		currentqueue, err := getQueue(ctx, rc)
 		if err != nil {
-			fmt.Println(err.Error())
 			http.Error(w, "Failed to deserialize queue", http.StatusInternalServerError)
 			close(client.Events)
 			return
 		}
 		err = processQueue(ctx, rc, client, currentqueue)
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Println("Error processing queue", err.Error())
 			http.Error(w, "Failed to process queue", http.StatusInternalServerError)
 			close(client.Events)
 			return
