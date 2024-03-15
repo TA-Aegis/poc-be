@@ -42,7 +42,7 @@ func updateQueue(ctx context.Context, redisClient *redis.Client, queue []*models
 }
 
 func calculateWaitTime(position int) time.Duration {
-	return 30 * time.Second * time.Duration(position+1)
+	return 15 * time.Second * time.Duration(position+1)
 }
 
 func processQueue(ctx context.Context, redisClient *redis.Client, client *models.Client, queue []*models.Client) error {
@@ -51,45 +51,47 @@ func processQueue(ctx context.Context, redisClient *redis.Client, client *models
 		return errors.New("No client found")
 	}
 
-	waitTime := 30 * time.Second * time.Duration(idx+1)
+	var message string
+	var isFinished bool
+	var percetageProgress float64
+
+	waitTime := 15 * time.Second * time.Duration(idx+1)
 	elapsed := time.Since(client.RegisterAt)
 	isWaitDone := elapsed >= waitTime && idx == 0
 
-	var msg string
 	if isWaitDone {
-		msg = "Your turn has arrived."
-		waitTime = 30 * time.Second * time.Duration(0)
-		client.Events <- &models.QueueEvents{
-			UserID:            client.ID,
-			QueueNumber:       idx + 1,
-			EstimatedTime:     math.Floor(waitTime.Seconds()),
-			Message:           msg,
-			PercetageProgress: (float64(idx+1) / float64(len(queue))) * 100,
-			IsFinished:        true,
-		}
-
+		message = "Your turn has arrived."
+		isFinished = true
 		queue = append(queue[:idx], queue[idx+1:]...)
-		err := updateQueue(ctx, redisClient, queue)
-		if err != nil {
-			fmt.Println(err.Error())
-			return err
-		}
-		return err
+		percetageProgress = 100
+		waitTime = 0
 	} else {
-		prev := queue[idx-1]
-		elapsed = time.Since(prev.RegisterAt)
-		waitTimeBefore := 30*time.Second*time.Duration(idx) - elapsed
-		waitTime = waitTimeBefore + 30
-		client.Events <- &models.QueueEvents{
-			UserID:            client.ID,
-			QueueNumber:       idx + 1,
-			EstimatedTime:     math.Floor(waitTime.Seconds()),
-			Message:           "",
-			PercetageProgress: (float64(idx+1) / float64(len(queue))) * 100,
-			IsFinished:        false,
-		}
-		return nil
+		waitTime = 15*time.Second*time.Duration(idx+1) - elapsed
+		message = fmt.Sprintf("Please wait, estimated time: %.0f seconds.", math.Floor(waitTime.Seconds()))
+		isFinished = false
+		percetageProgress = float64(idx+1) / float64(len(queue)+1) * 100
 	}
+
+	if waitTime < 0 {
+		waitTime = 0
+	}
+
+	client.Events <- &models.QueueEvents{
+		UserID:            client.ID,
+		QueueNumber:       idx + 1,
+		EstimatedTime:     math.Floor(waitTime.Seconds()),
+		Message:           message,
+		PercetageProgress: percetageProgress,
+		IsFinished:        isFinished,
+	}
+
+	if isFinished {
+		if err := updateQueue(ctx, redisClient, queue); err != nil {
+			return fmt.Errorf("failed to update queue in Redis: %v", err)
+		}
+	}
+
+	return nil
 }
 
 func (hd *HandlerDependencies) QueueHandler(w http.ResponseWriter, r *http.Request) {

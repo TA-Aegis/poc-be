@@ -24,7 +24,7 @@ func SetupRedis() *redis.Client {
 	}
 	client := redis.NewClient(opt)
 	if err := client.Ping(ctx); err != nil {
-		fmt.Println("Error pint to redis:", err.Err())
+		fmt.Println("Error ping to redis:", err.Err())
 	}
 	return client
 }
