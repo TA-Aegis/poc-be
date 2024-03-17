@@ -37,7 +37,7 @@ jobs:
   dockerize-and-push-do:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'do'
-    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
+    environment: staging
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
