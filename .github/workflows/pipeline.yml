@@ -130,14 +130,14 @@ jobs:
     needs: dockerize-and-push-do
     if: vars.CLOUD_PLATFORM == 'do'
     runs-on: ubuntu-latest
-    environment: ${{ needs.setup-environment.outputs.BRANCH }}
+    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Prepare deployment file
         run: |
-          IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
+          IMAGE_TAG=${{ needs.dockerize-and-push-do.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
