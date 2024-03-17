@@ -130,7 +130,6 @@ jobs:
 
       - name: Prepare deployment file
         run: |
-          BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
@@ -149,7 +148,7 @@ jobs:
 
       - name: Deploy
         run: |
-          kubectl apply -f k8s/${{ needs.setup-environment.outputs.BRANCH }}.yml
+          kubectl apply -f k8s/${{ env.BRANCH }}.yml
 
   deploy-to-server-gcp:
     needs: dockerize-and-push-gcp
@@ -162,7 +161,6 @@ jobs:
 
       - name: Prepare deployment file
         run: |
-          BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
@@ -184,7 +182,7 @@ jobs:
 
       - name: Deploy
         run: |
-          kubectl apply -f k8s/${{ needs.setup-environment.outputs.BRANCH }}.yml
+          kubectl apply -f k8s/${{ env.BRANCH }}.yml
 
   deploy-to-server-aws:
     needs: dockerize-and-push-aws
@@ -197,7 +195,6 @@ jobs:
 
       - name: Prepare deployment file
         run: |
-          BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
@@ -217,7 +214,6 @@ jobs:
 
       - name: Prepare deployment file
         run: |
-          BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
