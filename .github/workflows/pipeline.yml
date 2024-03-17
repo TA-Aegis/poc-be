@@ -109,7 +109,7 @@ jobs:
         run: |
           DOCKER_PATH="${{ env.GCP_ZONE }}-docker.pkg.dev/$PROJECT_ID/$GAR_REPO"
           IMAGE_NAME="${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-          docker build -t $DOCKER_PATH/$IMAGE_NAME
+          docker build -t $DOCKER_PATH/$IMAGE_NAME .
           docker push $DOCKER_PATH/$IMAGE_NAME
   
   dockerize-and-push-aws:
