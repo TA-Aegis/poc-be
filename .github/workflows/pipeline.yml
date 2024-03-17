@@ -37,6 +37,7 @@ jobs:
   dockerize-and-push-do:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'do'
+    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
@@ -72,7 +73,10 @@ jobs:
   dockerize-and-push-gcp:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'gcp'
+    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -82,6 +86,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pass env
+        id: set-env
+        run: |
+          echo "::set-output name=IMAGE_TAG::${{ needs.setup-environment.outputs.IMAGE_TAG }}"
+          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
 
       - name: Create secret
         run: |
@@ -91,7 +101,10 @@ jobs:
   dockerize-and-push-aws:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'aws'
+    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -101,6 +114,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pass env
+        id: set-env
+        run: |
+          echo "::set-output name=IMAGE_TAG::${{ needs.setup-environment.outputs.IMAGE_TAG }}"
+          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
 
       - name: Create secret
         run: |
@@ -110,7 +129,10 @@ jobs:
   dockerize-and-push-azure:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'azure'
+    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -120,6 +142,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pass env
+        id: set-env
+        run: |
+          echo "::set-output name=IMAGE_TAG::${{ needs.setup-environment.outputs.IMAGE_TAG }}"
+          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
 
       - name: Create secret
         run: |
@@ -161,14 +189,14 @@ jobs:
     needs: dockerize-and-push-gcp
     if: vars.CLOUD_PLATFORM == 'gcp'
     runs-on: ubuntu-latest
-    environment: ${{ needs.setup-environment.outputs.BRANCH }}
+    environment: ${{ needs.dockerize-and-push-gcp.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Prepare deployment file
         run: |
-          IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
+          IMAGE_TAG=${{ needs.dockerize-and-push-gcp.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
@@ -195,14 +223,14 @@ jobs:
     needs: dockerize-and-push-aws
     if: vars.CLOUD_PLATFORM == 'aws'
     runs-on: ubuntu-latest
-    environment: ${{ needs.setup-environment.outputs.BRANCH }}
+    environment: ${{ needs.dockerize-and-push-aws.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Prepare deployment file
         run: |
-          IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
+          IMAGE_TAG=${{ needs.dockerize-and-push-aws.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
@@ -214,14 +242,14 @@ jobs:
     needs: dockerize-and-push-azure
     if: vars.CLOUD_PLATFORM == 'azure'
     runs-on: ubuntu-latest
-    environment: ${{ needs.setup-environment.outputs.BRANCH }}
+    environment: ${{ needs.dockerize-and-push-azure.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Prepare deployment file
         run: |
-          IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
+          IMAGE_TAG=${{ needs.dockerize-and-push-azure.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
