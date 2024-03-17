@@ -18,6 +18,7 @@ env:
 
 jobs:
   setup-environment:
+    if: github.event.pull_request.merged == false
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
