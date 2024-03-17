@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
-      ENVIRONMENT: ${{ steps.set-env.outputs.ENVIRONMENT }}
+      BRANCH: ${{ steps.set-env.outputs.BRANCH }}
     steps:
       - name: Set environment variables
         id: set-env
@@ -37,10 +37,11 @@ jobs:
   dockerize-and-push-do:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'do'
-    environment: staging
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
+      BRANCH: ${{ steps.set-env.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -73,7 +74,7 @@ jobs:
   dockerize-and-push-gcp:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'gcp'
-    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
@@ -101,7 +102,7 @@ jobs:
   dockerize-and-push-aws:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'aws'
-    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
@@ -129,7 +130,7 @@ jobs:
   dockerize-and-push-azure:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'azure'
-    environment: ${{ needs.dockerize-and-push-do.outputs.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
