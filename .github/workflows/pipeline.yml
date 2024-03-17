@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - master
+      - main
       - staging
   pull_request:
     branches:
       - master
+      - main
       - staging
     types: [closed]
 
@@ -15,6 +17,7 @@ env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
   VERSION: ${{ github.sha }}
+  BRANCH: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
 
 jobs:
   setup-environment:
@@ -22,22 +25,15 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
-      BRANCH: ${{ steps.set-env.outputs.BRANCH }}
       ENVIRONMENT: ${{ steps.set-env.outputs.ENVIRONMENT }}
     steps:
       - name: Set environment variables
         id: set-env
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "::set-output name=IMAGE_TAG::production:$SHORT_SHA"
-            echo "::set-output name=BRANCH::production"
-            echo "::set-output name=ENVIRONMENT::production"
-          else
-            echo "::set-output name=IMAGE_TAG::staging:$SHORT_SHA"
-            echo "::set-output name=BRANCH::staging"
-            echo "::set-output name=ENVIRONMENT::staging"
-          fi
+          echo "::set-output name=IMAGE_TAG::${{ env.BRANCH }}:$SHORT_SHA"
+          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
+          echo "::set-output name=ENVIRONMENT::${{ env.BRANCH }}"
 
   dockerize-and-push-do:
     needs: setup-environment
@@ -137,11 +133,11 @@ jobs:
           BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
-          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/$BRANCH.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/$BRANCH.yml
-          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/$BRANCH.yml
-          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/$BRANCH.yml
-          cat k8s/$BRANCH.yml
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
+          cat k8s/${{ env.BRANCH }}.yml
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -169,11 +165,11 @@ jobs:
           BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
-          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/$BRANCH.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/$BRANCH.yml
-          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/$BRANCH.yml
-          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/$BRANCH.yml
-          cat k8s/$BRANCH.yml
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
+          cat k8s/${{ env.BRANCH }}.yml
 
       - id: 'auth'
         uses: google-github-actions/auth@v0
@@ -204,11 +200,11 @@ jobs:
           BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
-          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/$BRANCH.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/$BRANCH.yml
-          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/$BRANCH.yml
-          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/$BRANCH.yml
-          cat k8s/$BRANCH.yml
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
+          cat k8s/${{ env.BRANCH }}.yml
 
   deploy-to-server-azure:
     needs: dockerize-and-push-azure
@@ -224,8 +220,8 @@ jobs:
           BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
           IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
-          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/$BRANCH.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/$BRANCH.yml
-          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/$BRANCH.yml
-          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/$BRANCH.yml
-          cat k8s/$BRANCH.yml
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
+          cat k8s/${{ env.BRANCH }}.yml
