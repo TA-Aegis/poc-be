@@ -32,6 +32,7 @@ jobs:
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           echo "::set-output name=IMAGE_TAG::${{ env.BRANCH }}:$SHORT_SHA"
+          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
 
   dockerize-and-push-do:
     needs: setup-environment
@@ -53,6 +54,7 @@ jobs:
         id: set-env
         run: |
           echo "::set-output name=IMAGE_TAG::${{ needs.setup-environment.outputs.IMAGE_TAG }}"
+          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
 
       - name: Create secret
         run: |
@@ -128,7 +130,7 @@ jobs:
     needs: dockerize-and-push-do
     if: vars.CLOUD_PLATFORM == 'do'
     runs-on: ubuntu-latest
-    environment: ${{ env.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -159,7 +161,7 @@ jobs:
     needs: dockerize-and-push-gcp
     if: vars.CLOUD_PLATFORM == 'gcp'
     runs-on: ubuntu-latest
-    environment: ${{ env.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -193,7 +195,7 @@ jobs:
     needs: dockerize-and-push-aws
     if: vars.CLOUD_PLATFORM == 'aws'
     runs-on: ubuntu-latest
-    environment: ${{ env.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -212,7 +214,7 @@ jobs:
     needs: dockerize-and-push-azure
     if: vars.CLOUD_PLATFORM == 'azure'
     runs-on: ubuntu-latest
-    environment: ${{ env.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
