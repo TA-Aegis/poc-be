@@ -124,7 +124,7 @@ jobs:
           cat ./.env
 
   deploy-to-server-do:
-    needs: [setup-environment, dockerize-and-push-do]
+    needs: dockerize-and-push-do
     if: vars.CLOUD_PLATFORM == 'do'
     runs-on: ubuntu-latest
     environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
@@ -156,7 +156,7 @@ jobs:
           kubectl apply -f k8s/${{ needs.setup-environment.outputs.BRANCH }}.yml
 
   deploy-to-server-gcp:
-    needs: [setup-environment, dockerize-and-push-gcp]
+    needs: dockerize-and-push-gcp
     if: vars.CLOUD_PLATFORM == 'gcp'
     runs-on: ubuntu-latest
     environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
@@ -191,7 +191,7 @@ jobs:
           kubectl apply -f k8s/${{ needs.setup-environment.outputs.BRANCH }}.yml
 
   deploy-to-server-aws:
-    needs: [setup-environment, dockerize-and-push-aws]
+    needs: dockerize-and-push-aws
     if: vars.CLOUD_PLATFORM == 'aws'
     runs-on: ubuntu-latest
     environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
@@ -211,7 +211,7 @@ jobs:
           cat k8s/$BRANCH.yml
 
   deploy-to-server-azure:
-    needs: [setup-environment, dockerize-and-push-azure]
+    needs: dockerize-and-push-azure
     if: vars.CLOUD_PLATFORM == 'azure'
     runs-on: ubuntu-latest
     environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
