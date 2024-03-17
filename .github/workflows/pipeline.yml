@@ -17,7 +17,9 @@ env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
   BRANCH: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
+
   GCP_REGION: asia-southeast1
+  GCP_ZONE: asia-southeast1-a
 
 jobs:
   setup-environment:
@@ -227,7 +229,7 @@ jobs:
         uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ vars.GCP_CLUSTER_NAME }}
-          location: ${{ env.GCP_REGION }}-a
+          location: ${{ env.GCP_ZONE }}
 
       - name: Deploy
         run: |
