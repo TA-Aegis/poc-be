@@ -16,8 +16,8 @@ on:
 env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
-  VERSION: ${{ github.sha }}
   BRANCH: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
+  GCP_ZONE: asia-southeast1
 
 jobs:
   setup-environment:
@@ -46,7 +46,7 @@ jobs:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
-      - name: Login to Docker Hub
+      - name: Login Docker
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -63,11 +63,11 @@ jobs:
           echo "${{ vars.ENV }}" > ./.env
           cat ./.env
 
-      - name: Build and push Docker image
+      - name: Build and push Docker Image
         run: |
-          IMAGE_NAME="reyshazni/${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+          IMAGE_NAME="${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
+          docker build -t reyshazni/$IMAGE_NAME .
+          docker push reyshazni/$IMAGE_NAME
         env:
           IMAGE_TAG: ${{ needs.setup-environment.outputs.IMAGE_TAG }}
 
@@ -78,15 +78,17 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
+    env: 
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GAR_REPO: antrein-test
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - id: auth
+        uses: google-github-actions/auth@v0
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          credentials_json: ${{ vars.GCP_SA_KEY }}
 
       - name: Pass env
         id: set-env
@@ -98,6 +100,17 @@ jobs:
         run: |
           echo "${{ vars.ENV }}" > ./.env
           cat ./.env
+
+      - name: Login Docker
+        run: |
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ env.GCP_ZONE }}-docker.pkg.dev
+
+      - name: Build and push Docker Image
+        run: |
+          DOCKER_PATH="${{ env.GCP_ZONE }}-docker.pkg.dev/$PROJECT_ID/$GAR_REPO"
+          IMAGE_NAME="${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
+          docker build -t $DOCKER_PATH/$IMAGE_NAME
+          docker push $DOCKER_PATH/$IMAGE_NAME
   
   dockerize-and-push-aws:
     needs: setup-environment
@@ -205,16 +218,16 @@ jobs:
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
 
-      - id: 'auth'
+      - id: auth
         uses: google-github-actions/auth@v0
         with:
-          credentials_json: ${{ vars.GKE_SA_KEY }}
+          credentials_json: ${{ vars.GCP_SA_KEY }}
 
       - name: Connect to cluster
         uses: google-github-actions/get-gke-credentials@v0
         with:
-          cluster_name: ${{ vars.GKE_CLUSTER }}
-          location: asia-southeast1
+          cluster_name: ${{ vars.GCP_CLUSTER_NAME }}
+          location: ${{ env.GCP_ZONE }}
 
       - name: Deploy
         run: |
