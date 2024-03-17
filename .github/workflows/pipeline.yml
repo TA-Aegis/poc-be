@@ -17,7 +17,7 @@ env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
   BRANCH: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
-  GCP_ZONE: asia-southeast1
+  GCP_REGION: asia-southeast1
 
 jobs:
   setup-environment:
@@ -86,7 +86,7 @@ jobs:
         uses: actions/checkout@v2
 
       - id: auth
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ vars.GCP_SA_KEY }}
 
@@ -103,11 +103,11 @@ jobs:
 
       - name: Login Docker
         run: |
-          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ env.GCP_ZONE }}-docker.pkg.dev
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ env.GCP_REGION }}-docker.pkg.dev
 
       - name: Build and push Docker Image
         run: |
-          DOCKER_PATH="${{ env.GCP_ZONE }}-docker.pkg.dev/$PROJECT_ID/$GAR_REPO"
+          DOCKER_PATH="${{ env.GCP_REGION }}-docker.pkg.dev/$PROJECT_ID/$GAR_REPO"
           IMAGE_NAME="${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
           docker build -t $DOCKER_PATH/$IMAGE_NAME .
           docker push $DOCKER_PATH/$IMAGE_NAME
@@ -219,15 +219,15 @@ jobs:
           cat k8s/${{ env.BRANCH }}.yml
 
       - id: auth
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ vars.GCP_SA_KEY }}
 
       - name: Connect to cluster
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ vars.GCP_CLUSTER_NAME }}
-          location: ${{ env.GCP_ZONE }}
+          location: ${{ env.GCP_REGION }}-a
 
       - name: Deploy
         run: |
