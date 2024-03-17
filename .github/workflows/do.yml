@@ -27,12 +27,13 @@ jobs:
       - name: Set environment variables
         id: set-env
         run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "::set-output name=IMAGE_TAG::production:${{ github.sha }}"
+            echo "::set-output name=IMAGE_TAG::production:$SHORT_SHA"
             echo "::set-output name=BRANCH::production"
             echo "::set-output name=ENVIRONMENT::production"
           else
-            echo "::set-output name=IMAGE_TAG::staging:${{ github.sha }}"
+            echo "::set-output name=IMAGE_TAG::staging:$SHORT_SHA"
             echo "::set-output name=BRANCH::staging"
             echo "::set-output name=ENVIRONMENT::staging"
           fi
@@ -69,22 +70,24 @@ jobs:
       - name: Prepare deployment file
         run: |
           BRANCH=${{ needs.setup-environment.outputs.BRANCH }}
+          IMAGE_TAG=${{ needs.setup-environment.outputs.IMAGE_TAG }}
+          SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
           sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/$BRANCH.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}|g" k8s/$BRANCH.yml
-          sed -i "s|<VERSION>|${{ env.VERSION }}|g" k8s/$BRANCH.yml
+          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/$BRANCH.yml
+          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/$BRANCH.yml
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/$BRANCH.yml
           cat k8s/$BRANCH.yml
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
-          token: ${{ secrets.DO_PAK }}
+          token: ${{ vars.DO_PAK }}
 
       - name: Connect to cluster
-        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DO_CLUSTER_NAME }}
+        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ vars.DO_CLUSTER_NAME }}
 
       - name: Create secret and apply changes
         run: |
-          echo "${{ secrets.ENV }}" > ./.env
+          echo "${{ vars.ENV }}" > ./.env
           kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ needs.setup-environment.outputs.BRANCH }} --from-env-file=./.env -o yaml --dry-run=client | kubectl apply -f -
           kubectl apply -f k8s/${{ needs.setup-environment.outputs.BRANCH }}.yml
