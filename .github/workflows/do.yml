@@ -62,6 +62,7 @@ jobs:
 
   deploy-to-do:
     needs: [setup-environment, dockerize-and-push]
+    if: vars.CLOUD_PLATFORM == 'do'
     runs-on: ubuntu-latest
     environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
     steps:
@@ -92,3 +93,42 @@ jobs:
           echo "${{ vars.ENV }}" > ./.env
           kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ needs.setup-environment.outputs.BRANCH }} --from-env-file=./.env -o yaml --dry-run=client | kubectl apply -f -
           kubectl apply -f k8s/${{ needs.setup-environment.outputs.BRANCH }}.yml
+
+  deploy-to-gcp:
+    needs: [setup-environment, dockerize-and-push]
+    if: vars.CLOUD_PLATFORM == 'gcp'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Prepare deployment file
+        run: |
+          echo "deploy to gcp"
+
+  deploy-to-aws:
+    needs: [setup-environment, dockerize-and-push]
+    if: vars.CLOUD_PLATFORM == 'aws'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Prepare deployment file
+        run: |
+          echo "deploy to aws"
+
+  deploy-to-azure:
+    needs: [setup-environment, dockerize-and-push]
+    if: vars.CLOUD_PLATFORM == 'azure'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Prepare deployment file
+        run: |
+          echo "deploy to azure"
