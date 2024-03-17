@@ -15,10 +15,11 @@ env:
   PROJECT_NAME: ${{ github.event.repository.name }}
   PORT: 8080
   VERSION: ${{ github.sha }}
+  CLOUD_PLATFORM : ${{ vars.CLOUD_PLATFORM }}
 
 jobs:
   setup-environment:
-    if: github.event.pull_request.merged == false
+    if: ${{ github.event.pull_request.merged == false && env.CLOUD_PLATFORM == 'aws' }}
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
@@ -51,6 +52,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Create secret
+        run: |
+          echo "${{ vars.ENV }}" > ./.env
+          cat ./.env
 
       - name: Build and push Docker image
         run: |
@@ -88,47 +94,6 @@ jobs:
       - name: Connect to cluster
         run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ vars.DO_CLUSTER_NAME }}
 
-      - name: Create secret and apply changes
+      - name: Deploy
         run: |
-          echo "${{ vars.ENV }}" > ./.env
-          kubectl create secret generic ${{ env.PROJECT_NAME }}.env -n ${{ needs.setup-environment.outputs.BRANCH }} --from-env-file=./.env -o yaml --dry-run=client | kubectl apply -f -
           kubectl apply -f k8s/${{ needs.setup-environment.outputs.BRANCH }}.yml
-
-  deploy-to-gcp:
-    needs: [setup-environment, dockerize-and-push]
-    if: vars.CLOUD_PLATFORM == 'gcp'
-    runs-on: ubuntu-latest
-    environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v2
-
-      - name: Prepare deployment file
-        run: |
-          echo "deploy to gcp"
-
-  deploy-to-aws:
-    needs: [setup-environment, dockerize-and-push]
-    if: vars.CLOUD_PLATFORM == 'aws'
-    runs-on: ubuntu-latest
-    environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v2
-
-      - name: Prepare deployment file
-        run: |
-          echo "deploy to aws"
-
-  deploy-to-azure:
-    needs: [setup-environment, dockerize-and-push]
-    if: vars.CLOUD_PLATFORM == 'azure'
-    runs-on: ubuntu-latest
-    environment: ${{ needs.setup-environment.outputs.ENVIRONMENT }}
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v2
-
-      - name: Prepare deployment file
-        run: |
-          echo "deploy to azure"
