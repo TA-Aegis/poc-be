@@ -84,14 +84,6 @@ jobs:
         run: |
           echo "${{ vars.ENV }}" > ./.env
           cat ./.env
-
-      # - name: Build and push Docker image
-      #   run: |
-      #     IMAGE_NAME="reyshazni/${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-      #     docker build --platform linux/amd64 -t $IMAGE_NAME .
-      #     docker push $IMAGE_NAME
-      #   env:
-      #     IMAGE_TAG: ${{ needs.setup-environment.outputs.IMAGE_TAG }}
   
   dockerize-and-push-aws:
     needs: setup-environment
@@ -112,14 +104,6 @@ jobs:
           echo "${{ vars.ENV }}" > ./.env
           cat ./.env
 
-      # - name: Build and push Docker image
-      #   run: |
-      #     IMAGE_NAME="reyshazni/${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-      #     docker build --platform linux/amd64 -t $IMAGE_NAME .
-      #     docker push $IMAGE_NAME
-      #   env:
-      #     IMAGE_TAG: ${{ needs.setup-environment.outputs.IMAGE_TAG }}
-
   dockerize-and-push-azure:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'azure'
@@ -138,14 +122,6 @@ jobs:
         run: |
           echo "${{ vars.ENV }}" > ./.env
           cat ./.env
-
-      # - name: Build and push Docker image
-      #   run: |
-      #     IMAGE_NAME="reyshazni/${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-      #     docker build --platform linux/amd64 -t $IMAGE_NAME .
-      #     docker push $IMAGE_NAME
-      #   env:
-      #     IMAGE_TAG: ${{ needs.setup-environment.outputs.IMAGE_TAG }}
 
   dockerize-and-push-do:
     needs: setup-environment
