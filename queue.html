@@ -9,10 +9,10 @@
     <div id="queue"></div>
 
     <script>
-        const evtSource = new EventSource("http://127.0.0.1:8080/events");
+        const evtSource = new EventSource("http://127.0.0.1:8080/queue");
 
         evtSource.onmessage = function(event) {
-            console.log(event);
+            console.log(event.data);
             document.getElementById("queue").innerHTML = event.data;
         }
 

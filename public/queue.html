@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Queue Simulation with SSE</title>
+</head>
+<body>
+    <h1>Queue Updates</h1>
+    <div id="queue"></div>
+
+    <script>
+        const evtSource = new EventSource("/queue");
+
+        evtSource.onmessage = function(event) {
+            console.log(event);
+            document.getElementById("queue").innerHTML = event.data;
+        }
+
+        evtSource.onerror = function(error) {
+            console.error("EventSource failed:", error);
+            evtSource.close(); // Consider reconnecting automatically
+        };
+
+        function generateRandomId() {
+            return Math.floor(10000000 + Math.random() * 90000000);
+        }
+
+    </script>
+</body>
+</html>
